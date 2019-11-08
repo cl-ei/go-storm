@@ -21,19 +21,18 @@ func defaultMiddleWare(f httpHandlerFunc) httpHandlerFunc {
 	return wrapped
 }
 
-func (s *Server) Listen() {
+func RunServer(addr string) error {
+	logger.Info("Starting http server, addr[%s].", addr)
+
 	// load router.
 	for urlPattern, handler := range handlers.UrlMap {
 		http.HandleFunc(urlPattern, defaultMiddleWare(handler))
 	}
 
-	logger.Info("addr: ", s.addr)
-	err := http.ListenAndServe(s.addr, nil)
+	err := http.ListenAndServe(addr, nil)
 	if err != nil {
 		logger.Error("Error happened in http listener: ", err)
+		return err
 	}
-}
-
-func New(addr string) *Server {
-	return &Server{addr}
+	return nil
 }

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"github.com/wonderivan/logger"
 	"gopkg.in/ini.v1"
 	"os"
@@ -73,5 +74,5 @@ func init() {
 		getUid:   CloudFuncSec.Key("get_uid").String(),
 	}
 
-	logger.Info("Config File: ", CONFIG)
+	fmt.Println("Config File: ", CONFIG)
 }
