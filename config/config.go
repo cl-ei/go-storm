@@ -8,10 +8,10 @@ import (
 )
 
 type Redis struct {
-	host      string
-	port      int
-	password  string
-	goStormDB int
+	Host     string
+	Port     int
+	Password string
+	DB       int
 }
 
 type CloudFunc struct {
@@ -22,8 +22,8 @@ type CloudFunc struct {
 
 type Config struct {
 	CDN_URL   string
-	redis     Redis
-	cloudFunc CloudFunc
+	Redis     Redis
+	CloudFunc CloudFunc
 }
 
 var CONFIG Config
@@ -60,15 +60,15 @@ func init() {
 	redisSec := conf.Section("redis")
 	rPort, _ := redisSec.Key("port").Int()
 	rgoStormDB, _ := redisSec.Key("go_storm_db").Int()
-	CONFIG.redis = Redis{
-		host:      redisSec.Key("host").String(),
-		port:      rPort,
-		password:  redisSec.Key("password").String(),
-		goStormDB: rgoStormDB,
+	CONFIG.Redis = Redis{
+		Host:     redisSec.Key("host").String(),
+		Port:     rPort,
+		Password: redisSec.Key("password").String(),
+		DB:       rgoStormDB,
 	}
 
 	CloudFuncSec := conf.Section("cloud_function")
-	CONFIG.cloudFunc = CloudFunc{
+	CONFIG.CloudFunc = CloudFunc{
 		agency:   CloudFuncSec.Key("url").String(),
 		acceptor: CloudFuncSec.Key("acceptor").String(),
 		getUid:   CloudFuncSec.Key("get_uid").String(),

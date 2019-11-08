@@ -26,17 +26,17 @@ var HeartBeatPackage = []byte{
 }
 
 type WsClient struct {
-	roomId      int
+	roomId      int32
 	onMessage   func([]byte)
 	onError     func(string)
 	onConnected func(*websocket.Conn)
 	onClose     func()
 	conn        *websocket.Conn
 	extra       string
-	isClosed    bool
+	IsClosed    bool
 }
 
-func GenPacket(act int, payload string) []byte {
+func GenPacket(act int32, payload string) []byte {
 	var (
 		payloadBytes = []byte(payload) // payload.encode("utf-8")
 		packetLen    = int32(PackageHeaderLength + len(payloadBytes))
@@ -57,7 +57,7 @@ func GenPacket(act int, payload string) []byte {
 	return packet
 }
 
-func JoinRoom(roomId int) (p []byte) {
+func JoinRoom(roomId int32) (p []byte) {
 	uid := int(1E15 + math.Floor(2E15*rand.Float64()))
 	packJsonStr := fmt.Sprintf("{\"uid\":%d,\"roomid\":%d}", uid, roomId)
 	return GenPacket(Message, packJsonStr)
@@ -88,7 +88,7 @@ func (c *WsClient) Connect() {
 		Host:   "broadcastlv.chat.bilibili.com:2244",
 		Path:   "/sub",
 	}
-	logger.Info("connecting to %s", u.String())
+	// logger.Info("connecting to %s", u.String())
 
 	conn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
@@ -118,12 +118,12 @@ func (c *WsClient) Connect() {
 }
 
 func (c *WsClient) Close() {
-	if c.isClosed {
+	if c.IsClosed {
 		// logger.Info("Close a closed Ws Client.")
 		return
 	}
 
-	c.isClosed = true
+	c.IsClosed = true
 	defer func() {
 		if c.onClose != nil {
 			c.onClose()
@@ -133,7 +133,7 @@ func (c *WsClient) Close() {
 	if err := c.conn.Close(); err != nil {
 		logger.Error("Error happened when close ws.")
 	}
-	logger.Info("Connection closed.")
+	logger.Error("Connection closed.")
 }
 
 func (c *WsClient) ReadMessage() {
@@ -149,7 +149,7 @@ func (c *WsClient) ReadMessage() {
 	for {
 		_, message, err := c.conn.ReadMessage()
 		if err != nil {
-			if c.isClosed {
+			if c.IsClosed {
 				return
 			}
 
@@ -165,7 +165,7 @@ func (c *WsClient) ReadMessage() {
 			if c.onMessage != nil {
 				c.onMessage(m)
 			} else {
-				logger.Info("R -> \n\t%s", m)
+				// logger.Info("R -> \n\t%s", m)
 			}
 		})
 	}
@@ -186,7 +186,7 @@ func (c *WsClient) HeartBeat() {
 	}
 }
 
-func CreateWsConnection(roomId int) *WsClient {
+func CreateWsConnection(roomId int32) *WsClient {
 	client := WsClient{roomId: roomId}
 	client.Connect()
 	return &client
