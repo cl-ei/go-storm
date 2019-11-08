@@ -113,7 +113,7 @@ func (c *WsClient) Connect() {
 	}
 
 	go c.ReadMessage()
-	go c.HeartBeat()
+	// go c.HeartBeat()
 	// logger.Info("Ws connected!")
 }
 
@@ -178,12 +178,16 @@ func (c *WsClient) HeartBeat() {
 	}()
 	for {
 		time.Sleep(20 * time.Second)
-		if err := c.conn.WriteMessage(websocket.BinaryMessage, HeartBeatPackage); err != nil {
+		if err := c.SendHeartBeatPackage(); err != nil {
 			return
 		} else {
 			// logger.Info("Send heartbeat.")
 		}
 	}
+}
+
+func (c *WsClient) SendHeartBeatPackage() error {
+	return c.conn.WriteMessage(websocket.BinaryMessage, HeartBeatPackage)
 }
 
 func CreateWsConnection(roomId int32) *WsClient {

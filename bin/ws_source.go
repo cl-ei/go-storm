@@ -10,6 +10,47 @@ import (
 )
 
 var ClientsMap = make(map[int32]*api.WsClient)
+var HeartBeatCoroutineStarted = false
+
+func StartHeartBeatGoroutine() {
+	if HeartBeatCoroutineStarted {
+		return
+	}
+	HeartBeatCoroutineStarted = true
+
+	go func() {
+		var (
+			startTime  int64
+			costTime   int64
+			sleepTime  int64
+			flushCount int32
+		)
+		for {
+			startTime = time.Now().Unix()
+			flushCount = 0
+
+			for _, client := range ClientsMap {
+				if client.IsClosed {
+					continue
+				}
+
+				if err := client.SendHeartBeatPackage(); err != nil {
+					client.Close()
+					continue
+				}
+				flushCount++
+			}
+			costTime = time.Now().Unix() - startTime
+			if costTime < 20 {
+				sleepTime = 20 - costTime
+			} else {
+				sleepTime = 0
+			}
+			logger.Info("HeartBeat cost: %d, sleep time: %d, flushCount: %d", costTime, sleepTime, flushCount)
+			time.Sleep(time.Duration(sleepTime) * time.Second)
+		}
+	}()
+}
 
 func GetMonitorLiveRooms() []int32 {
 	val, err := RedisClient.Get("LT_MONITOR_LIVE_ROOMS").Result()
@@ -29,21 +70,28 @@ func GetMonitorLiveRooms() []int32 {
 	return returnData
 }
 
-func main() {
-	logger.Info("Starting ws source proc.")
-	time.Sleep(100 * time.Millisecond)
-
+func CreateConnections() {
 	liveRooms := GetMonitorLiveRooms()
 	if liveRooms == nil {
 		logger.Error("Cannot get monitor live rooms. ")
 		return
 	}
 	logger.Info("Result: ", liveRooms[:100])
-
-	for _, roomId := range liveRooms[:3000] {
+	for index, roomId := range liveRooms {
 		clientPointer := api.CreateWsConnection(roomId)
 		ClientsMap[roomId] = clientPointer
+
+		if index%200 == 0 {
+			time.Sleep(4 * time.Second)
+		}
 	}
+}
+
+func main() {
+	logger.Info("Starting ws source proc.")
+	time.Sleep(100 * time.Millisecond)
+	StartHeartBeatGoroutine()
+	CreateConnections()
 
 	for {
 		time.Sleep(10 * time.Second)
@@ -54,6 +102,6 @@ func main() {
 				activeClientsCount++
 			}
 		}
-		logger.Warn("Ws client count: %d", activeClientsCount)
+		logger.Warn("Ws client count: %d/%d", activeClientsCount, len(ClientsMap))
 	}
 }
