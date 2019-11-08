@@ -1,8 +1,8 @@
 package main
 
 import (
-	"../config"
-	"fmt"
+	_ "../config"
+	"github.com/wonderivan/logger"
 	"time"
 )
 
@@ -18,9 +18,9 @@ func (h *Handler) init() {
 }
 
 func main() {
-	time.Sleep(5 * time.Second)
+	logger.Info("Starting ws source proc.")
+	time.Sleep(100 * time.Millisecond)
 
-	fmt.Print("Starting ws source proc. \n\tConfig: ", config.CONFIG)
 	h := Handler{}
 	h.init()
 	println(len(h.clients))
