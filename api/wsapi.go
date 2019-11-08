@@ -1,7 +1,6 @@
 package api
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/wonderivan/logger"
@@ -41,28 +40,21 @@ func GenPacket(act int, payload string) []byte {
 	var (
 		payloadBytes = []byte(payload) // payload.encode("utf-8")
 		packetLen    = int32(PackageHeaderLength + len(payloadBytes))
-		headers      = []byte{15: 0}
-		join         = make([][]byte, 2)
+		packet       = make([]byte, packetLen)
 	)
 
-	headers[0] = byte((packetLen >> 24) & 0xFF)
-	headers[1] = byte((packetLen >> 16) & 0xFF)
-	headers[2] = byte((packetLen >> 8) & 0xFF)
-	headers[3] = byte(packetLen & 0xFF)
-	headers[4] = 0
-	headers[5] = 16
-	headers[6] = 0
-	headers[7] = 1
-	headers[8] = 0
-	headers[9] = 0
-	headers[10] = 0
-	headers[11] = byte(act)
-	headers[15] = 1
-
-	join[0] = headers
-	join[1] = payloadBytes
-
-	return bytes.Join(join, []byte(""))
+	packet[0] = byte((packetLen >> 24) & 0xFF)
+	packet[1] = byte((packetLen >> 16) & 0xFF)
+	packet[2] = byte((packetLen >> 8) & 0xFF)
+	packet[3] = byte(packetLen & 0xFF)
+	packet[5] = 16
+	packet[7] = 1
+	packet[11] = byte(act)
+	packet[15] = 1
+	for i, b := range payloadBytes {
+		packet[16+i] = b
+	}
+	return packet
 }
 
 func JoinRoom(roomId int) (p []byte) {
