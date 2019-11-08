@@ -10,16 +10,6 @@ type Server struct {
 	addr string
 }
 
-func Index(w http.ResponseWriter, r *http.Request) {
-	logger.Info("url: ", r.URL.EscapedPath(), ", method: ", r.Method)
-	responseDat := "OK!"
-
-	_, err := w.Write([]byte(responseDat))
-	if err != nil {
-	}
-	w.WriteHeader(http.StatusOK)
-}
-
 type httpHandlerFunc func(w http.ResponseWriter, r *http.Request)
 
 func defaultMiddleWare(f httpHandlerFunc) httpHandlerFunc {
