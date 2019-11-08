@@ -25,7 +25,7 @@ type httpHandlerFunc func(w http.ResponseWriter, r *http.Request)
 func defaultMiddleWare(f httpHandlerFunc) httpHandlerFunc {
 	wrapped := func(w http.ResponseWriter, r *http.Request) {
 		logger.Info("Access: %s %s", r.Method, r.URL.EscapedPath())
-		w.Header().Add("server", "madliar/1.18.9a6 (Darwin)")
+		w.Header().Add("server", "madliar/1.18.9a6 (Darwin, based on golang)")
 		f(w, r)
 	}
 	return wrapped
