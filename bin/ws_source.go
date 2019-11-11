@@ -26,7 +26,7 @@ func StartHeartBeatGoroutine() {
 			flushCount int32
 		)
 		for {
-			startTime = time.Now().Unix()
+			startTime = time.Now().UnixNano()
 			flushCount = 0
 
 			for _, client := range ClientsMap {
@@ -40,14 +40,17 @@ func StartHeartBeatGoroutine() {
 				}
 				flushCount++
 			}
-			costTime = time.Now().Unix() - startTime
-			if costTime < 20 {
-				sleepTime = 20 - costTime
+			costTime = time.Now().UnixNano() - startTime
+			if costTime < 20*1e9 {
+				sleepTime = 20*1e9 - costTime
 			} else {
 				sleepTime = 0
 			}
-			logger.Info("HeartBeat cost: %d, sleep time: %d, flushCount: %d", costTime, sleepTime, flushCount)
-			time.Sleep(time.Duration(sleepTime) * time.Second)
+			logger.Info(
+				"HeartBeat cost: %.3f, sleep time: %.2f, flushCount: %d",
+				float64(costTime)/1e9, float64(sleepTime)/1e9, flushCount,
+			)
+			time.Sleep(time.Duration(sleepTime) * time.Nanosecond)
 		}
 	}()
 }
@@ -78,11 +81,13 @@ func CreateConnections() {
 	}
 	logger.Info("Result: ", liveRooms[:100])
 	for index, roomId := range liveRooms {
-		clientPointer := api.CreateWsConnection(roomId)
-		ClientsMap[roomId] = clientPointer
+		go func() {
+			clientPointer := api.CreateWsConnection(roomId)
+			ClientsMap[roomId] = clientPointer
+		}()
 
-		if index%200 == 0 {
-			time.Sleep(4 * time.Second)
+		if index%500 == 0 {
+			time.Sleep(1 * time.Second)
 		}
 	}
 }

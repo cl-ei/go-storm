@@ -69,6 +69,9 @@ func ParseMessage(m []byte, handler func([]byte)) {
 		CurrentMessage []byte
 	)
 
+	// logger.Debug("r: %s", m)
+	return
+
 	for {
 		if len(m) < 16 {
 			return
@@ -85,8 +88,8 @@ func ParseMessage(m []byte, handler func([]byte)) {
 func (c *WsClient) Connect() {
 	u := url.URL{
 		Scheme: "ws",
-		Host:   "broadcastlv.chat.bilibili.com:2244",
-		Path:   "/sub",
+		Host:   "www.madliar.com:1024", // "broadcastlv.chat.bilibili.com:2244",
+		Path:   "/raffle_wss",
 	}
 	// logger.Info("connecting to %s", u.String())
 
